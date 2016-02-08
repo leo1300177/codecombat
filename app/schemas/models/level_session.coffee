@@ -149,6 +149,8 @@ _.extend LevelSessionSchema.properties,
       additionalProperties:
         type: 'string'
         format: 'code'
+  codeLog:
+    type: 'string'
 
   codeLanguage:
     type: 'string'

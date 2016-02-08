@@ -47,6 +47,8 @@ module.exports = class SpellView extends CocoView
     'tome:maximize-toggled': 'onMaximizeToggled'
     'script:state-changed': 'onScriptStateChange'
     'playback:ended-changed': 'onPlaybackEndedChanged'
+    'level:contact-button-pressed': 'putSpade'
+    'level:show-victory': 'onShowVictory'
 
   events:
     'mouseout': 'onMouseOut'
@@ -63,7 +65,6 @@ module.exports = class SpellView extends CocoView
     @highlightCurrentLine = _.throttle @highlightCurrentLine, 100
     $(window).on 'resize', @onWindowResize
     @observing = @session.get('creator') isnt me.id
-
   afterRender: ->
     super()
     @createACE()
@@ -105,6 +106,21 @@ module.exports = class SpellView extends CocoView
     $(@ace.container).find('.ace_gutter').on 'click mouseenter', '.ace_error, .ace_warning, .ace_info', @onAnnotationClick
     $(@ace.container).find('.ace_gutter').on 'click', @onGutterClick
     @initAutocomplete aceConfig.liveCompletion ? true
+
+    # Create a Spade to 'dig' into Ace.
+    if Spade
+      spade = @spade = new Spade()
+      @spade.track(@ace)
+
+      # If a user is taking longer than 10 minutes, let's log it.
+      tenMin = 10 * 60 * 1000
+      view = @
+      @spadeWatch = setTimeout(->
+        view.putSpade()
+      , tenMin)
+    else
+      console.warn "Spade not detected."
+  
 
   createACEShortcuts: ->
     @aceCommands = aceCommands = []
@@ -222,6 +238,7 @@ module.exports = class SpellView extends CocoView
         if not disableSpaces or (_.isNumber(disableSpaces) and disableSpaces < me.level())
           return @ace.execCommand 'insertstring', ' '
         line = @aceDoc.getLine @ace.getCursorPosition().row
+        console.log(@singleLineCommentRegex().test line)
         return @ace.execCommand 'insertstring', ' ' if @singleLineCommentRegex().test line
 
     if @options.level.get 'backspaceThrottle'
@@ -704,6 +721,30 @@ module.exports = class SpellView extends CocoView
   hideProblemAlert: ->
     return if @destroyed
     Backbone.Mediator.publish 'tome:hide-problem-alert', {}
+
+  putSpade: () ->
+    # This happens when 1) The user has taken longer than 10 minutes, 2) the Contact button is pressed.
+    # Let's check to make sure SPADE exists.
+    if @spade
+      console.log('SPADE saving in view')
+      # Compiles the raw events (removes duplicates/0-references the timestamps)
+      spadeEvents = @spade.compile()
+      # Condenses the events further from an object with objects to a flat array.
+      condensedEvents = @spade.compress(spadeEvents)
+      # No need to write if there was absolutely nothing recorded.
+      if(condensedEvents.length is 0)
+        console.warn('SPADE saw no events, nothing to record')
+        return
+      # Finally use LZString to compress the string representation of our array of arrays.
+      # We favor compressToUTF16 over compress as compress produces 'invalid' UTF-16 strings which are acceptable in LocalStorage, but not acceptable for viewing, tranfsering, or doing anything with outside of LocalStorage.
+      compressedEvents = LZString.compressToUTF16(JSON.stringify(condensedEvents))
+      # Toss them into a new session variable.
+      @options.session.set('codeLog', compressedEvents)
+      @options.session.save()
+  
+  onShowVictory: () ->
+    if @spadeWatch
+      window.clearTimeout(@spadeWatch)
 
   onManualCast: (e) ->
     cast = @$el.parent().length

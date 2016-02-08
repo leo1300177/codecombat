@@ -81,7 +81,7 @@ LevelSessionSchema.pre 'save', (next) ->
     next()
 
 LevelSessionSchema.statics.privateProperties = ['code', 'submittedCode', 'unsubscribed']
-LevelSessionSchema.statics.editableProperties = ['multiplayer', 'players', 'code', 'codeLanguage', 'completed', 'state',
+LevelSessionSchema.statics.editableProperties = ['multiplayer', 'players', 'code', 'codeLog', 'codeLanguage', 'completed', 'state',
                                                  'levelName', 'creatorName', 'levelID', 'screenshot',
                                                  'chat', 'teamSpells', 'submitted', 'submittedCodeLanguage',
                                                  'unsubscribed', 'playtime', 'heroConfig', 'team', 'transpiledCode',
