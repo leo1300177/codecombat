@@ -719,7 +719,8 @@ module.exports = class SpellView extends CocoView
   saveSpade: (e) =>
     return if @destroyed
     spadeEvents = @spade.compile()
-    @spade.debugPlay(spadeEvents)
+    # Uncomment the below line for a debug panel to display inside the level
+    #@spade.debugPlay(spadeEvents)
     condensedEvents = @spade.condense(spadeEvents)
     return unless condensedEvents.length
     compressedEvents = LZString.compressToUTF16(JSON.stringify(condensedEvents))
