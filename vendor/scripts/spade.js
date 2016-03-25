@@ -18,9 +18,7 @@ Spade.prototype = {
 		keyHook.addEventListener("keydown", function(_event) {spade.createEvent(spade.target)});
 		//Maybe this is needed depending on Firefox/other browsers? Duplicate non-diff events get compiled down.
 		keyHook.addEventListener("keyup", function(_event) {spade.createEvent(spade.target)});
-
 		_elem.addEventListener("mouseup", function(_event) {spade.createEvent(spade.target)});
-		
 	},
 	createEvent: function(_target) {
 		if(_target.getValue) {
@@ -38,12 +36,6 @@ Spade.prototype = {
 				"timestamp":(new Date()).getTime()
 			});
 		}
-	},
-	clear: function() {
-		this.stack = [];
-	},
-	setInput: function(_elem) {
-		_elem.value = this.stack[this.stack.length - 1].content;
 	},
 	compile: function() {
 		var compiledStack = [];
@@ -189,7 +181,18 @@ Spade.prototype = {
 			prevTime = curTime;
 		}, 10);
 	},
-	compress: function(_stack) {
+	debugPlay: function(_stack) {
+		var area = document.createElement('textarea');
+		area.zIndex = 9999;
+		area.style.width = "512px";
+		area.style.height = "512px";
+		area.style.position = "absolute";
+		area.style.left = "100px";
+		area.style.top = "100px";
+		document.body.appendChild(area);
+		this.play(_stack, area);
+	},
+	condense: function(_stack) {
 		var compressedArray = [];
 		for(var i = 0; i < _stack.length; i++) {
 			var u = _stack[i];
@@ -206,7 +209,7 @@ Spade.prototype = {
 		}
 		return compressedArray;
 	},
-	uncompress: function(_array) {
+	expand: function(_array) {
 		var uncompressedArray = [];
 		for(var i = 0 ; i < _array.length; i++) {
 			var c = _array[i];

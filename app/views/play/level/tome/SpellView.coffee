@@ -10,6 +10,7 @@ SpellToolbarView = require './SpellToolbarView'
 LevelComponent = require 'models/LevelComponent'
 UserCodeProblem = require 'models/UserCodeProblem'
 utils = require 'core/utils'
+CodeLog = require 'models/CodeLog'
 
 module.exports = class SpellView extends CocoView
   id: 'spell-view'
@@ -47,7 +48,7 @@ module.exports = class SpellView extends CocoView
     'tome:maximize-toggled': 'onMaximizeToggled'
     'script:state-changed': 'onScriptStateChange'
     'playback:ended-changed': 'onPlaybackEndedChanged'
-    'level:contact-button-pressed': 'putSpade'
+    'level:contact-button-pressed': 'saveSpade'
     'level:show-victory': 'onShowVictory'
 
   events:
@@ -108,18 +109,13 @@ module.exports = class SpellView extends CocoView
     @initAutocomplete aceConfig.liveCompletion ? true
 
     # Create a Spade to 'dig' into Ace.
-    if Spade
-      spade = @spade = new Spade()
-      @spade.track(@ace)
+    @spade = new Spade()
+    @spade.track(@ace)
 
-      # If a user is taking longer than 10 minutes, let's log it.
-      tenMin = 10 * 60 * 1000
-      view = @
-      @spadeWatch = setTimeout(->
-        view.putSpade()
-      , tenMin)
-    else
-      console.warn "Spade not detected."
+    # If a user is taking longer than 10 minutes, let's log it.
+    #saveSpadeDelay = 10 * 60 * 1000
+    saveSpadeDelay = 10 * 1000
+    @saveSpadeTimeout = setTimeout @saveSpade, saveSpadeDelay
   
 
   createACEShortcuts: ->
@@ -238,7 +234,6 @@ module.exports = class SpellView extends CocoView
         if not disableSpaces or (_.isNumber(disableSpaces) and disableSpaces < me.level())
           return @ace.execCommand 'insertstring', ' '
         line = @aceDoc.getLine @ace.getCursorPosition().row
-        console.log(@singleLineCommentRegex().test line)
         return @ace.execCommand 'insertstring', ' ' if @singleLineCommentRegex().test line
 
     if @options.level.get 'backspaceThrottle'
@@ -722,29 +717,38 @@ module.exports = class SpellView extends CocoView
     return if @destroyed
     Backbone.Mediator.publish 'tome:hide-problem-alert', {}
 
-  putSpade: () ->
-    # This happens when 1) The user has taken longer than 10 minutes, 2) the Contact button is pressed.
-    # Let's check to make sure SPADE exists.
-    if @spade
-      console.log('SPADE saving in view')
-      # Compiles the raw events (removes duplicates/0-references the timestamps)
-      spadeEvents = @spade.compile()
-      # Condenses the events further from an object with objects to a flat array.
-      condensedEvents = @spade.compress(spadeEvents)
-      # No need to write if there was absolutely nothing recorded.
-      if(condensedEvents.length is 0)
-        console.warn('SPADE saw no events, nothing to record')
-        return
-      # Finally use LZString to compress the string representation of our array of arrays.
-      # We favor compressToUTF16 over compress as compress produces 'invalid' UTF-16 strings which are acceptable in LocalStorage, but not acceptable for viewing, tranfsering, or doing anything with outside of LocalStorage.
-      compressedEvents = LZString.compressToUTF16(JSON.stringify(condensedEvents))
-      # Toss them into a new session variable.
-      @options.session.set('codeLog', compressedEvents)
+  saveSpade: (e) =>
+    return if @destroyed
+    spadeEvents = @spade.compile()
+    @spade.debugPlay(spadeEvents)
+    condensedEvents = @spade.condense(spadeEvents)
+    return unless condensedEvents.length
+    compressedEvents = LZString.compressToUTF16(JSON.stringify(condensedEvents))
+    codelog = new CodeLog({
+      sessionID: @options.session.id
+      levelID: @options.level.id
+      levelSlug: @options.level.get 'slug'
+      userID: @options.session.get 'creator'
+      userName: @options.session.get 'creatorName'
+      log: compressedEvents
+    })
+
+    codelog.on('save:success', (e) ->
+      codelogs = @options.session.get('codeLogs')
+      if codelogs? and codelogs.push?
+        codelogs.push e.id
+      else
+        codelogs = [e.id]
+      @options.session.set('codeLogs', codelogs)
       @options.session.save()
+    , @)
+
+    codelog.save()
   
-  onShowVictory: () ->
-    if @spadeWatch
-      window.clearTimeout(@spadeWatch)
+  onShowVictory: (e) ->
+    if @saveSpadeTimeout?
+      window.clearTimeout @saveSpadeTimeout
+      @saveSpadeTimeout = null
 
   onManualCast: (e) ->
     cast = @$el.parent().length
@@ -1340,6 +1344,8 @@ module.exports = class SpellView extends CocoView
     @toolbarView?.destroy()
     @zatanna.addSnippets [], @editorLang if @editorLang?
     $(window).off 'resize', @onWindowResize
+    window.clearTimeout @saveSpadeTimeout
+    @saveSpadeTimeout = null
     super()
 
 commentStarts =
