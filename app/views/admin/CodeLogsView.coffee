@@ -22,11 +22,9 @@ module.exports = class CodeLogsView extends RootView
     @supermodel.loadCollection(@codelogs, 'codelogs')
       
   onThangsLoaded: ->
-    console.log @codelogs
-    @renderSelectors '#codelogtable'
+    @renderSelectors '#code-log-table'
 
   onClickPlayback: (e) ->
-    console.log e
     @deleteTooltip()
     events = LZString.decompressFromUTF16($(e.target).data('codelog'))
     events = @spade.expand(JSON.parse(events))

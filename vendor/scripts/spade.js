@@ -168,13 +168,14 @@ Spade.prototype = {
 					}
 				}
 				if(_elem.selection && _elem.selection.moveCursorToPosition) {
-					//console.log(tEvent);
-					//_elem.selection.moveCursorToPosition(tEvent.selFIndex);
-					//_elem.selection.setSelectionAnchor(tEvent.selEIndex.row, tEvent.selEIndex.column);
-					//_elem.selection.selectTo(tEvent.selFIndex.row, tEvent.selFIndex.column);
+					//Maybe this will work someday
+					_elem.selection.moveCursorToPosition(tEvent.selFIndex);
+					_elem.selection.setSelectionAnchor(tEvent.selEIndex.row, tEvent.selEIndex.column);
+					_elem.selection.selectTo(tEvent.selFIndex.row, tEvent.selFIndex.column);
 				} else {
-					//_elem.focus();
-					//_elem.setSelectionRange(tEvent.selFIndex, tEvent.selEIndex);
+					//Likewise
+					_elem.focus();
+					_elem.setSelectionRange(tEvent.selFIndex, tEvent.selEIndex);
 				}
 			}
 			if(_stack[_stack.length - 1] === undefined || elapsedTime > _stack[_stack.length - 1].timestamp) {
@@ -195,7 +196,6 @@ Spade.prototype = {
 		this.play(_stack, area);
 	},
 	condense: function(_stack) {
-		console.log(_stack)
 		var compressedArray = [];
 		for(var i = 0; i < _stack.length; i++) {
 			var u = _stack[i];

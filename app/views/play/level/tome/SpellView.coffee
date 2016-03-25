@@ -723,7 +723,6 @@ module.exports = class SpellView extends CocoView
     condensedEvents = @spade.condense(spadeEvents)
     return unless condensedEvents.length
     compressedEvents = LZString.compressToUTF16(JSON.stringify(condensedEvents))
-    console.log compressedEvents
     codelog = new CodeLog({
       sessionID: @options.session.id
       level:
@@ -734,8 +733,6 @@ module.exports = class SpellView extends CocoView
       userName: @options.session.get 'creatorName'
       log: compressedEvents
     })
-    console.log codelog.get('log')
-
     codelog.on('save:success', (e) ->
       codelogs = @options.session.get('codeLogs')
       if codelogs? and codelogs.push?
