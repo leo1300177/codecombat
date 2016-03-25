@@ -17,9 +17,10 @@ module.exports = class ThangTasksView extends RootView
       model: ThangType
       comparator: @sortThangs
     )
-    @lastLoad = (new Date()).getTime()
-    @listenTo(@thangs, 'sync', @onThangsLoaded)
-    @supermodel.loadCollection(@thangs, 'thangs')
+    console.log @thangs
+    #@lastLoad = (new Date()).getTime()
+    #@listenTo(@thangs, 'sync', @onThangsLoaded)
+    #@supermodel.loadCollection(@thangs, 'thangs')
 
   searchUpdate: ->
     if not @lastLoad? or (new Date()).getTime() - @lastLoad > 60 * 1000 * 1 # Update only after a minute from last update.

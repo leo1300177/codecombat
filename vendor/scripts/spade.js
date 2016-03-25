@@ -46,6 +46,7 @@ Spade.prototype = {
 			for(var i = 0; i < this.stack.length; i++) {
 				var c = this.stack[i];
 				var adjustedTimestamp = c.timestamp - startTime;
+
 				var tString = "";	//The changed string.
 				var fIndex = null;	//The first index of changes.
 				var eIndex = null;	//The last index of changes.
@@ -138,7 +139,8 @@ Spade.prototype = {
 		} else {
 			_elem.value = _stack[0].difContent
 		}
-		_stack.shift()
+		_stack = _stack.slice();
+		_stack.shift();
 		var curTime, dTime;
 		var elapsedTime = 0;
 		var prevTime = (new Date()).getTime();
@@ -167,12 +169,12 @@ Spade.prototype = {
 				}
 				if(_elem.selection && _elem.selection.moveCursorToPosition) {
 					//console.log(tEvent);
-					_elem.selection.moveCursorToPosition(tEvent.selFIndex);
-					_elem.selection.setSelectionAnchor(tEvent.selEIndex.row, tEvent.selEIndex.column);
-					_elem.selection.selectTo(tEvent.selFIndex.row, tEvent.selFIndex.column);
+					//_elem.selection.moveCursorToPosition(tEvent.selFIndex);
+					//_elem.selection.setSelectionAnchor(tEvent.selEIndex.row, tEvent.selEIndex.column);
+					//_elem.selection.selectTo(tEvent.selFIndex.row, tEvent.selFIndex.column);
 				} else {
-					_elem.focus();
-					_elem.setSelectionRange(tEvent.selFIndex, tEvent.selEIndex);
+					//_elem.focus();
+					//_elem.setSelectionRange(tEvent.selFIndex, tEvent.selEIndex);
 				}
 			}
 			if(_stack[_stack.length - 1] === undefined || elapsedTime > _stack[_stack.length - 1].timestamp) {
@@ -193,6 +195,7 @@ Spade.prototype = {
 		this.play(_stack, area);
 	},
 	condense: function(_stack) {
+		console.log(_stack)
 		var compressedArray = [];
 		for(var i = 0; i < _stack.length; i++) {
 			var u = _stack[i];

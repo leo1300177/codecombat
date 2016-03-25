@@ -10,7 +10,7 @@ CodeLogHandler = class CodeLogHandler extends Handler
     #console.log(req)
     codelog.id = req.id
     codelog.set 'sessionID', req.body.sessionID
-    codelog.set 'levelID', req.body.levelID
+    codelog.set 'level', req.body.level
     codelog.set 'levelSlug', req.body.levelSlug
     codelog.set 'userID', req.body.userID
     codelog.set 'userName', req.body.userName
@@ -57,5 +57,4 @@ CodeLogHandler = class CodeLogHandler extends Handler
 +        else
 +          super(req, res)
   ###
-
 module.exports = new CodeLogHandler()

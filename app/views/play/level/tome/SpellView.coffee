@@ -113,8 +113,7 @@ module.exports = class SpellView extends CocoView
     @spade.track(@ace)
 
     # If a user is taking longer than 10 minutes, let's log it.
-    #saveSpadeDelay = 10 * 60 * 1000
-    saveSpadeDelay = 10 * 1000
+    saveSpadeDelay = 10 * 60 * 1000
     @saveSpadeTimeout = setTimeout @saveSpade, saveSpadeDelay
   
 
@@ -724,14 +723,18 @@ module.exports = class SpellView extends CocoView
     condensedEvents = @spade.condense(spadeEvents)
     return unless condensedEvents.length
     compressedEvents = LZString.compressToUTF16(JSON.stringify(condensedEvents))
+    console.log compressedEvents
     codelog = new CodeLog({
       sessionID: @options.session.id
-      levelID: @options.level.id
+      level:
+        original: @options.level.get 'original'
+        majorVersion: (@options.level.get 'version').major
       levelSlug: @options.level.get 'slug'
       userID: @options.session.get 'creator'
       userName: @options.session.get 'creatorName'
       log: compressedEvents
     })
+    console.log codelog.get('log')
 
     codelog.on('save:success', (e) ->
       codelogs = @options.session.get('codeLogs')
