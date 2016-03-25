@@ -9,8 +9,8 @@ module.exports = class CodeLogsView extends RootView
   template: template
   id: 'code-logs-view'
   events:
-    'click .playback': 'onClickA'
-    'blur #tooltip': 'deleteTooltip'
+    'click .playback': 'onClickPlayback'
+    'blur #tooltip': 'onBlurTooltip'
   constructor: (options) ->
     @spade = new Spade()
     super options
@@ -18,24 +18,14 @@ module.exports = class CodeLogsView extends RootView
       url: '/db/codelogs'
       model: CodeLog
     )
-    #console.log @codelogs
     @listenTo(@codelogs, 'sync', @onThangsLoaded)
     @supermodel.loadCollection(@codelogs, 'codelogs')
       
   onThangsLoaded: ->
     console.log @codelogs
     @renderSelectors '#codelogtable'
-    ###
-    @processedThangs = @thangs.filter (_elem) ->
-      # Case-insensitive search of input vs name.
-      return ///#{$('#nameSearch')[0].value}///i.test _elem.get('name')
-    for thang in @processedThangs
-      thang.tasks = _.filter thang.attributes.tasks, (_elem) ->
-        # Similar case-insensitive search of input vs description (name).
-        return ///#{$('#descSearch')[0].value}///i.test _elem.name
-    @renderSelectors '#thangTable'
-    ###
-  onClickA: (e) ->
+
+  onClickPlayback: (e) ->
     console.log e
     @deleteTooltip()
     events = LZString.decompressFromUTF16($(e.target).data('codelog'))
@@ -48,11 +38,11 @@ module.exports = class CodeLogsView extends RootView
     tooltip.style.height = "512px"
     tooltip.style.borderRadius = "8px"
     tooltip.id = "codelogs-tooltip"
-    tooltip.addEventListener 'blur', @deleteTooltip
+    tooltip.addEventListener 'blur', @onBlurTooltip
     document.body.appendChild tooltip
     @spade.play(events, tooltip)
     #@spade.debugPlay(events)
-  deleteTooltip: (e) ->
+  onBlurTooltip: (e) ->
     tooltip = document.getElementById 'codelogs-tooltip'
     if tooltip?
       tooltip.parentNode.removeChild(tooltip)

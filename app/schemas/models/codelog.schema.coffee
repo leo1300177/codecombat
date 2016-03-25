@@ -11,7 +11,6 @@ CodeLogSchema =
   properties:
     sessionID: c.objectId()
     level: LevelVersionSchema
-    #level: {type:'object'}
     levelSlug: {type: 'string'}
     userID: c.objectId()
     userName: {type: 'string'}
