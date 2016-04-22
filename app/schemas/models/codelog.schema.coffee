@@ -4,18 +4,17 @@ LevelVersionSchema = c.object {required: ['original', 'majorVersion'], links: [{
   original: c.objectId({})
   majorVersion:
     type: 'integer'
-    minimum: 0  
+    minimum: 0 
+
 
 CodeLogSchema =
   type: 'object'
   properties:
     sessionID: c.objectId()
     level: LevelVersionSchema
-    levelSlug: {type: 'string'}
+    levelSlug: {type:'string'}
     userID: c.objectId()
-    userName: {type: 'string'}
-    log: {type: 'string'}
-    created: c.stringDate()
-  additionalProperties: false
+    log: {type:'string'}
+    created: c.date()
 
 module.exports = CodeLogSchema

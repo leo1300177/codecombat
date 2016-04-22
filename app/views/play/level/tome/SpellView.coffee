@@ -48,7 +48,7 @@ module.exports = class SpellView extends CocoView
     'tome:maximize-toggled': 'onMaximizeToggled'
     'script:state-changed': 'onScriptStateChange'
     'playback:ended-changed': 'onPlaybackEndedChanged'
-    'level:contact-button-pressed': 'saveSpade'
+    'level:contact-button-pressed': 'onContactButtonPressed'
     'level:show-victory': 'onShowVictory'
 
   events:
@@ -108,14 +108,13 @@ module.exports = class SpellView extends CocoView
     $(@ace.container).find('.ace_gutter').on 'click', @onGutterClick
     @initAutocomplete aceConfig.liveCompletion ? true
 
+    return if @session.get('creator') isnt me.id or @session.fake
     # Create a Spade to 'dig' into Ace.
     @spade = new Spade()
     @spade.track(@ace)
-
     # If a user is taking longer than 10 minutes, let's log it.
     saveSpadeDelay = 10 * 60 * 1000
     @saveSpadeTimeout = setTimeout @saveSpade, saveSpadeDelay
-  
 
   createACEShortcuts: ->
     @aceCommands = aceCommands = []
@@ -647,6 +646,9 @@ module.exports = class SpellView extends CocoView
   onMouseOut: (e) ->
     @debugView?.onMouseOut e
 
+  onContactButtonPressed: (e) ->
+    @saveSpade()
+
   getSource: ->
     @ace.getValue()  # could also do @firepad.getText()
 
@@ -716,7 +718,7 @@ module.exports = class SpellView extends CocoView
     return if @destroyed
     Backbone.Mediator.publish 'tome:hide-problem-alert', {}
 
-  saveSpade: (e) =>
+  saveSpade: =>
     return if @destroyed
     spadeEvents = @spade.compile()
     # Uncomment the below line for a debug panel to display inside the level
@@ -724,27 +726,29 @@ module.exports = class SpellView extends CocoView
     condensedEvents = @spade.condense(spadeEvents)
     return unless condensedEvents.length
     compressedEvents = LZString.compressToUTF16(JSON.stringify(condensedEvents))
-    codelog = new CodeLog({
+
+    console.log @options
+    codeLog = new CodeLog({
       sessionID: @options.session.id
       level:
         original: @options.level.get 'original'
         majorVersion: (@options.level.get 'version').major
       levelSlug: @options.level.get 'slug'
       userID: @options.session.get 'creator'
-      userName: @options.session.get 'creatorName'
       log: compressedEvents
     })
-    codelog.on('save:success', (e) ->
+    codeLog.save()
+
+    codeLog.on('save:success', (codelog) ->
       codelogs = @options.session.get('codeLogs')
       if codelogs? and codelogs.push?
-        codelogs.push e.id
+        codelogs.push codelog.id
       else
-        codelogs = [e.id]
+        codelogs = [codelog.id]
       @options.session.set('codeLogs', codelogs)
       @options.session.save()
     , @)
-
-    codelog.save()
+    
   
   onShowVictory: (e) ->
     if @saveSpadeTimeout?

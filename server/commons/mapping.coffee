@@ -29,7 +29,6 @@ module.exports.handlers =
   'prepaid': 'handlers/prepaid_handler'
   'subscription': 'handlers/subscription_handler'
   'user_polls_record': 'handlers/user_polls_record_handler'
-  'codelogs': 'codelogs/codelog_handler'
 
 module.exports.handlerUrlOverrides =
   'analytics_log_event': 'analytics.log.event'

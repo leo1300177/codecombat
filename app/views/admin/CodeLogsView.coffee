@@ -1,26 +1,24 @@
 RootView = require 'views/core/RootView'
-template = require 'templates/admin/codelogs'
-CocoCollection = require 'collections/CocoCollection'
+template = require 'templates/admin/codelogs-view'
+CodeLogCollection = require 'collections/CodeLogs'
 CodeLog = require 'models/CodeLog'
 utils = require 'core/utils'
 
 
 module.exports = class CodeLogsView extends RootView
   template: template
-  id: 'code-logs-view'
+  id: 'codelogs-view'
+  tooltip: null
   events:
     'click .playback': 'onClickPlayback'
-    'blur #tooltip': 'onBlurTooltip'
+
   constructor: (options) ->
-    @spade = new Spade()
     super options
-    @codelogs = new CocoCollection([],
-      url: '/db/codelogs'
-      model: CodeLog
-    )
+    @spade = new Spade()
+    @codelogs = new CodeLogCollection()
     @listenTo(@codelogs, 'sync', @onThangsLoaded)
     @supermodel.loadCollection(@codelogs, 'codelogs')
-      
+
   onThangsLoaded: ->
     @renderSelectors '#code-log-table'
 
@@ -28,19 +26,24 @@ module.exports = class CodeLogsView extends RootView
     @deleteTooltip()
     events = LZString.decompressFromUTF16($(e.target).data('codelog'))
     events = @spade.expand(JSON.parse(events))
-    tooltip = document.createElement('textarea')
-    tooltip.style.position = 'absolute'
-    tooltip.style.left = e.pageX + 20 + "px"
-    tooltip.style.top = e.pageY + "px"
-    tooltip.style.width = "512px"
-    tooltip.style.height = "512px"
-    tooltip.style.borderRadius = "8px"
-    tooltip.id = "codelogs-tooltip"
-    tooltip.addEventListener 'blur', @onBlurTooltip
-    document.body.appendChild tooltip
-    @spade.play(events, tooltip)
-    #@spade.debugPlay(events)
-  onBlurTooltip: (e) ->
-    tooltip = document.getElementById 'codelogs-tooltip'
-    if tooltip?
-      tooltip.parentNode.removeChild(tooltip)
+
+    @tooltip = $(document.createElement('textarea'))
+    @tooltip.attr('id', "codelogs-tooltip")
+    @tooltip.css({left: e.pageX + 20, top: e.pageY}) # Position near the cursor
+    @tooltip.blur @onBlurTooltip
+    @$('#codelogs-view').append @tooltip
+    @tooltip.focus()
+    @spade.play(events, @tooltip.context)
+
+  deleteTooltip: ->
+    if @tooltip?
+      @tooltip.off 'blur'
+      @tooltip.remove()
+      @tooltip = null
+
+  onBlurTooltip: (e) =>
+    @deleteTooltip()
+
+  destroy: ->
+    @deleteTooltip()
+    super()
