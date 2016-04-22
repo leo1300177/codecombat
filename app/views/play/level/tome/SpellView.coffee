@@ -727,7 +727,6 @@ module.exports = class SpellView extends CocoView
     return unless condensedEvents.length
     compressedEvents = LZString.compressToUTF16(JSON.stringify(condensedEvents))
 
-    console.log @options
     codeLog = new CodeLog({
       sessionID: @options.session.id
       level:
