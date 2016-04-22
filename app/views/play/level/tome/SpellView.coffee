@@ -724,6 +724,7 @@ module.exports = class SpellView extends CocoView
     # Uncomment the below line for a debug panel to display inside the level
     #@spade.debugPlay(spadeEvents)
     condensedEvents = @spade.condense(spadeEvents)
+    
     return unless condensedEvents.length
     compressedEvents = LZString.compressToUTF16(JSON.stringify(condensedEvents))
 
@@ -736,18 +737,8 @@ module.exports = class SpellView extends CocoView
       userID: @options.session.get 'creator'
       log: compressedEvents
     })
-    codeLog.save()
 
-    codeLog.on('save:success', (codelog) ->
-      codelogs = @options.session.get('codeLogs')
-      if codelogs? and codelogs.push?
-        codelogs.push codelog.id
-      else
-        codelogs = [codelog.id]
-      @options.session.set('codeLogs', codelogs)
-      @options.session.save()
-    , @)
-    
+    codeLog.save()
   
   onShowVictory: (e) ->
     if @saveSpadeTimeout?
