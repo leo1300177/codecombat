@@ -9,25 +9,25 @@ CodeLog = require '../../../server/models/CodeLog'
 User = require '../../../server/models/User'
 
 testLog1 = {
-  'sessionID': "f"
+  'sessionID': ObjectId("55b29efd1cd6abe8ce07db0d")
   'level': {
-    'original':'vv',
+    'original': ObjectId("55b29efd1cd6abe8ce07db0d")
     'majorVersion': 0
   }
   'levelSlug': "d"
-  'userID': "c"
+  'userID': ObjectId("55b29efd1cd6abe8ce07db0d")
   'userName': "b"
   'log': "a"
 }
 
 testLog2 = {
-  'sessionID': "fbb"
+  'sessionID': ObjectId("55b29efd1cd6abe8ce07db0d")
   'level': {
-    'original':'vvbbb',
+    'original': ObjectId("55b29efd1cd6abe8ce07db0d")
     'majorVersion': 0
   }
   'levelSlug': "dbbb"
-  'userID': "cbbb"
+  'userID': ObjectId("55b29efd1cd6abe8ce07db0d")
   'userName': "bbbb"
   'log': "abbb"
 }
