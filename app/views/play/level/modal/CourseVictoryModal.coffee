@@ -2,7 +2,6 @@ ModalView = require 'views/core/ModalView'
 template = require 'templates/play/level/modal/course-victory-modal'
 Achievements = require 'collections/Achievements'
 Level = require 'models/Level'
-Campaign = require 'models/Campaign'
 Course = require 'models/Course'
 ThangType = require 'models/ThangType'
 ThangTypes = require 'collections/ThangTypes'
@@ -11,6 +10,7 @@ EarnedAchievement = require 'models/EarnedAchievement'
 LocalMongo = require 'lib/LocalMongo'
 ProgressView = require './ProgressView'
 NewItemView = require './NewItemView'
+Classroom = require 'models/Classroom'
 utils = require 'core/utils'
 
 module.exports = class CourseVictoryModal extends ModalView
@@ -28,6 +28,9 @@ module.exports = class CourseVictoryModal extends ModalView
     @level = options.level
     @newItems = new ThangTypes()
     @newHeroes = new ThangTypes()
+    
+    @classroom = new Classroom()
+    @supermodel.trackRequest(@classroom.fetchForCourseInstance(@courseInstanceID))
 
     @achievements = options.achievements
     if not @achievements
@@ -44,17 +47,10 @@ module.exports = class CourseVictoryModal extends ModalView
       @nextLevel = new Level().setURL "/db/level/#{nextLevel.original}/version/#{nextLevel.majorVersion}"
       @nextLevel = @supermodel.loadModel(@nextLevel).model
 
-    @campaign = new Campaign()
     @course = options.course
     if @courseID and not @course
       @course = new Course().setURL "/db/course/#{@courseID}"
       @course = @supermodel.loadModel(@course).model
-      if @course.loading
-        @listenToOnce @course, 'sync', @onCourseLoaded
-      else
-        @onCourseLoaded()
-    else if @course
-      @onCourseLoaded()
 
     if @courseInstanceID
       @levelSessions = new LevelSessions()
@@ -62,11 +58,6 @@ module.exports = class CourseVictoryModal extends ModalView
       @levelSessions = @supermodel.loadCollection(@levelSessions, 'sessions', {
         data: { project: 'state.complete level.original playtime changed' }
       }).model
-
-
-  onCourseLoaded: ->
-    @campaign.set('_id', @course.get('campaignID'))
-    @campaign = @supermodel.loadModel(@campaign).model
 
 
   onAchievementsLoaded: ->
@@ -135,7 +126,7 @@ module.exports = class CourseVictoryModal extends ModalView
       level: @level
       nextLevel: @nextLevel
       course: @course
-      campaign: @campaign
+      classroom: @classroom
       levelSessions: @levelSessions
     })
 

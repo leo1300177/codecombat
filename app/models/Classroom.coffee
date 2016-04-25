@@ -67,3 +67,11 @@ module.exports = class Classroom extends CocoModel
     sum = (nums) -> _.reduce(nums, (s, num) -> s + num) or 0
     stats.playtime = sum((session.get('playtime') or 0 for session in sessions))
     return stats
+
+  fetchForCourseInstance: (courseInstanceID, options={}) ->
+    CourseInstance = require 'models/CourseInstance'
+    courseInstance = if _.isString(courseInstanceID) then new CourseInstance({_id:courseInstanceID}) else courseInstanceID
+    options = _.extend(options, {
+      url: _.result(courseInstance, 'url') + '/classroom'
+    })
+    @fetch(options)

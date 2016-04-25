@@ -25,7 +25,7 @@
               .col-sm-8
                 h3.text-uppercase.text-center= i18n(view.course.attributes, 'name')
               .col-sm-4
-                - var stats = view.campaign.statsForSessions(view.levelSessions)
+                - var stats = view.classroom.statsForSessions(view.levelSessions, view.course.id)
                 h1
                   span #{stats.levels.numDone}/#{stats.levels.size}
             

@@ -324,3 +324,43 @@ describe 'GET /db/course_instance/:handle/levels/:levelOriginal/next', ->
     [res, body] = yield request.getAsync { uri: utils.getURL("/db/course_instance/#{@courseInstanceB.id}/levels/#{@levelA.id}/next"), json: true }
     expect(res.statusCode).toBe(404)
     done()
+    
+    
+describe 'GET /db/course_instance/:handle/classroom', ->
+
+  beforeEach utils.wrap (done) ->
+    yield utils.clearModels [User, CourseInstance, Classroom]
+    @owner = yield utils.initUser()
+    yield @owner.save()
+    @member = yield utils.initUser()
+    yield @member.save()
+    @classroom = new Classroom({
+      ownerID: @owner._id
+      members: [@member._id]
+    })
+    yield @classroom.save()
+    @courseInstance = new CourseInstance({classroomID: @classroom._id})
+    yield @courseInstance.save()
+    @url = getURL("/db/course_instance/#{@courseInstance.id}/classroom")
+    done()
+
+  it 'returns the course instance\'s referenced classroom', utils.wrap (done) ->
+    yield utils.loginUser @owner
+    [res, body] = yield request.getAsync(@url, {json: true})
+    expect(res.statusCode).toBe(200)
+    expect(body.code).toBeDefined()
+    done()
+
+  it 'works if you are the owner or member', utils.wrap (done) ->
+    yield utils.loginUser @member
+    [res, body] = yield request.getAsync(@url, {json: true})
+    expect(res.statusCode).toBe(200)
+    expect(body.code).toBeUndefined()
+    done()
+
+  it 'does not work if you are not the owner or a member', utils.wrap (done) ->
+    @user = yield utils.initUser()
+    yield utils.loginUser @user
+    [res, body] = yield request.getAsync(@url, {json: true})
+    expect(res.statusCode).toBe(403)
+    done()

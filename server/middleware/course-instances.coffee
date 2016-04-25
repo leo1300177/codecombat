@@ -87,7 +87,7 @@ module.exports =
       if not courseID.equals(course._id)
         continue
       for level, index in course.levels
-        if level.original is levelOriginal
+        if level.original.toString() is levelOriginal
           foundLevelOriginal = true
           nextLevelOriginal = course.levels[index+1]?.original
           break
@@ -104,3 +104,22 @@ module.exports =
     level = yield dbq
     level = level.toObject({req: req})
     res.status(200).send(level)
+    
+    
+  fetchClassroom: wrap (req, res) ->
+    courseInstance = yield database.getDocFromHandle(req, CourseInstance)
+    if not courseInstance
+      throw new errors.NotFound('Course Instance not found.')
+
+    classroom = yield Classroom.findById(courseInstance.get('classroomID')).select(parse.getProjectFromReq(req))
+    if not classroom
+      throw new errors.NotFound('Classroom not found.')
+
+    isOwner = classroom.get('ownerID')?.equals req.user?._id
+    isMember = _.any(classroom.get('members') or [], (memberID) -> memberID.equals(req.user.get('_id')))
+    if not (isOwner or isMember)
+      throw new errors.Forbidden('You do not have access to this classroom')
+
+    classroom = classroom.toObject({req: req})
+
+    res.status(200).send(classroom)
