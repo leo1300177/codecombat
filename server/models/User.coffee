@@ -18,6 +18,8 @@ UserSchema = new mongoose.Schema({
   dateCreated:
     type: Date
     'default': Date.now
+  birthday:
+    type: Date
 }, {strict: false})
 
 UserSchema.index({'dateCreated': 1})

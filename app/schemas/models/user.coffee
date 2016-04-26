@@ -328,6 +328,7 @@ _.extend UserSchema.properties,
   })
   schoolName: {type: 'string'}
   role: {type: 'string', enum: ["God", "advisor", "parent", "principal", "student", "superintendent", "teacher", "technology coordinator"]}
+  birthday: c.date({title: "Birthday"})
 
 c.extendBasicProperties UserSchema, 'user'
 
