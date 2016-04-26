@@ -71,15 +71,6 @@
               input#name.input-large.form-control(name="name", type="text", value="", placeholder="e.g. Alex W the Skater", tabindex=3)
               
         .form-group
-          //-
-            label.control-label(for="school-input")
-              span.spr(data-i18n="signup.school_name")
-              em.optional-note
-                | (
-                span(data-i18n="signup.optional")
-                | ):
-            .input-border
-              input#school-input.input-large.form-control(name="schoolName", data-i18n="[placeholder]signup.school_name_placeholder", value=view.previousFormInputs.schoolName || '', tabindex=4)
           label.control-label(for="birthday-input")
             span(data-i18n="signup.birthday") Birthday
             | :
